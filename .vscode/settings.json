@@ -1,0 +1,7 @@
+{
+    "prettier.printWidth": 120,
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "/opt/tomcat/lib/servlet-api.jar"
+    ]
+}
