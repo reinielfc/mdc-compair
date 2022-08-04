@@ -1,18 +1,30 @@
 package com.compair.business;
 
+/**
+ *
+ * @author rei
+ */
 public class User {
+    private String email;
     private String username;
     private String password;
     private String firstName;
     private String lastName;
-    private String email;
 
     public User() {
+        this.email = "";
         this.username = "";
         this.password = "";
         this.firstName = "";
         this.lastName = "";
-        this.email = "";
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getUsername() {
@@ -45,14 +57,6 @@ public class User {
 
     public void setLastName(String lastName) {
         this.lastName = lastName;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public void setEmail(String email) {
-        this.email = email;
     }
 
 }
