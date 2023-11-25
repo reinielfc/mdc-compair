@@ -1,38 +1,68 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package com.compair.controller;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
+import java.security.spec.InvalidKeySpecException;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpSession;
 
 import com.compair.business.User;
-import com.compair.data.UserIO;
+import com.compair.data.UserDB;
+import com.compair.util.PasswordUtil;
 
 /**
  *
  * @author rei
  */
-@WebServlet(name = "UserController", urlPatterns = { "/login" })
+@WebServlet(name = "UserController", urlPatterns = { "/login", "/welcome" })
 public class UserController extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        doPost(request, response);
+        System.out.println("#DEBUG# [UserController] GET: " + request.getContextPath());
 
+        String requestURI = request.getRequestURI();
+        String url = "/login.jsp";
+
+        if (requestURI.endsWith("/welcome")) {
+            url = welcome(request);
+        }
+
+        getServletContext()
+                .getRequestDispatcher(url)
+                .forward(request, response);
+    }
+
+    private String welcome(HttpServletRequest request) {
+        HttpSession session = request.getSession(false);
+
+        if (session == null || session.getAttribute("user") == null) {
+            request.setAttribute("message", "Please log in to view your account details.");
+            return "/login.jsp";
+        }
+
+        return "/welcome.jsp";
     }
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        String url = logIn(request, response);
+        System.out.println("#DEBUG# [UserController] POST: " + request.getContextPath());
+
+        String url = "/login.jsp";
+        String requestURI = request.getRequestURI();
+
+        if (requestURI.endsWith("/login")) {
+            url = logIn(request, response);
+        } else if (requestURI.endsWith("/welcome")) {
+            url = welcome(request);
+        }
 
         getServletContext()
                 .getRequestDispatcher(url)
@@ -41,28 +71,24 @@ public class UserController extends HttpServlet {
 
     private String logIn(HttpServletRequest request, HttpServletResponse response) {
         String url = "/login.jsp";
-        String message = "";
-        
-        String username = request.getParameter("username");
+        String message = "Incorrect credentials.";
+
+        String email = request.getParameter("email");
         String password = request.getParameter("password");
 
-        if (username == null || password == null) {
-            return url;
-        }
+        User user = UserDB.select(email);
 
-        if (username.isBlank() || password.isBlank()) {
-            message = "* Missing credentials.";
-        } else {
-            String filePath = getServletContext().getRealPath("/WEB-INF/login_credentials.txt");
-            User user = UserIO.getUser(filePath, username, password);
-            if (user == null) {
-                message = "* Incorrect credentials.";
-            } else {
+        try {
+            if (user != null && PasswordUtil.verify(password, user.getPassword())) {
                 request.getSession().setAttribute("user", user);
-                url = "/welcome.jsp";
+                return "/welcome";
             }
+        } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+            e.printStackTrace();
+            message = "Could not authenticate.";
         }
-
+        
+        request.setAttribute("email", email);
         request.setAttribute("message", message);
 
         return url;

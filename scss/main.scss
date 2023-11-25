@@ -1,0 +1,23 @@
+@import "../node_modules/bootstrap/scss/functions";
+@import "../node_modules/bootstrap/scss/variables";
+@import "../node_modules/bootstrap/scss/mixins";
+
+$dark: #00112b;
+$secondary: #ff6600;
+
+$custom-colors: (
+    "primary": $blue-800,
+    "dark": $dark,
+    "secondary": $secondary,
+    "danger": $orange-500
+);
+
+$theme-colors: map-merge($theme-colors, $custom-colors);
+
+@import "../node_modules/bootstrap/scss/bootstrap";
+
+body.has-navbar::before {
+    content: "";
+    display: block;
+    height: 6rem;
+}
